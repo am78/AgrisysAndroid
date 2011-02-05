@@ -1,0 +1,11 @@
+
+<TableLayout android:id="@+id/tableLayout1"
+	android:layout_width="fill_parent" android:layout_height="fill_parent"
+	xmlns:android="http://schemas.android.com/apk/res/android">
+    <TextView android:layout_height="wrap_content" android:text="@string/flaeche" android:id="@+id/textView2" android:layout_width="wrap_content"></TextView>
+    <EditText android:layout_height="wrap_content" android:id="@+id/editText2" android:layout_width="wrap_content" android:text="@string/empty_string"></EditText>
+    <TextView android:layout_height="wrap_content" android:text="@string/date" android:id="@+id/textView3" android:layout_width="wrap_content"></TextView>
+    <DatePicker android:id="@+id/datePicker1" android:layout_width="wrap_content" android:layout_height="wrap_content"></DatePicker>
+    <TextView android:layout_height="wrap_content" android:text="@string/remark" android:id="@+id/textView1" android:layout_width="wrap_content"></TextView>
+    <EditText android:layout_height="wrap_content" android:layout_width="wrap_content" android:text="@string/empty_string" android:id="@+id/editText1"></EditText>
+</TableLayout>
