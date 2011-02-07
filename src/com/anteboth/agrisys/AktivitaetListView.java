@@ -5,7 +5,6 @@ import java.util.List;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -14,18 +13,17 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import com.anteboth.agrisys.data.AgrisysDataManager;
-import com.anteboth.agrisys.data.Flurstueck;
+import com.anteboth.agrisys.data.Aktivitaet;
 
 /**
- * Displays the flurstueck list entries.
+ * Displays the {@link Aktivitaet} list entries.
  * 
  * @author michael
  */
-public class FlurstueckListView extends ListActivity{
+public class AktivitaetListView extends ListActivity {
 
 	/** Reload menu item id. */
 	private static final int RELOAD_DATA = 0;
@@ -66,17 +64,8 @@ public class FlurstueckListView extends ListActivity{
 		thread.start();
 
 		//show a progress monitor while loading the data 
-		progressDialog = ProgressDialog.show(FlurstueckListView.this,
+		progressDialog = ProgressDialog.show(AktivitaetListView.this,
 				"Bitte warten...", "Daten werden geladen...", true);
-	}
-	
-	
-	@Override
-	protected void onListItemClick(ListView l, View v, int position, long id) {
-		//TODO
-		Context ctx = v.getContext();
-		Intent intent = new Intent(ctx, AktivitaetListView.class);
-		ctx.startActivity(intent);
 	}
 	
 	@Override
@@ -127,13 +116,16 @@ public class FlurstueckListView extends ListActivity{
 	 */
 	private void getData(){
 		try{
+			Long schlagErntejahrId = Long.valueOf(248); //TODO
+			
 			//get the flurstueck entries
-			List<Flurstueck> data = new AgrisysDataManager().loadFlurstueckList(getApplicationContext());
+			List<Aktivitaet> data = new AgrisysDataManager().loadAktivitaetList(
+					schlagErntejahrId, getApplicationContext());
 			listData = new ArrayList<ListItemData>();
 			if (data != null) {
-				for (Flurstueck f : data) {
+				for (Aktivitaet f : data) {
 					ListItemData o = new ListItemData();
-					o.setItem0(f.getName());
+					o.setItem0(f.getDatum().toLocaleString());
 					o.setItem1(f.getFlaeche() + " ha");
 					listData.add(o);
 				}

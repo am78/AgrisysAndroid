@@ -19,6 +19,7 @@
         </activity>
         <activity android:name="FlurstueckListView"></activity>
         <activity android:name="AussaatView"></activity>
+        <activity android:name="AktivitaetListView"></activity>
 
     </application>
 </manifest>

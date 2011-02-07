@@ -54,7 +54,7 @@ public final class AuthenticatedAppEngineContext implements HttpContext {
 	throws AccountsException, AuthenticationException {
 		delegate_ = new BasicHttpContext();
 		String authToken = getAuthenticationToken(context);
-		AndroidHttpClient httpClient = AndroidHttpClient.newInstance("GetAuthCookieClient", context);
+		AndroidHttpClient httpClient = AndroidHttpClient.newInstance("GetAuthCookieClient");//, context);
 		try {
 			httpClient.getParams().setBooleanParameter(ClientPNames.HANDLE_REDIRECTS, false);
 			cookieStore_ = new BasicCookieStore();
