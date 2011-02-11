@@ -5,18 +5,21 @@ import java.util.List;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 
+import com.anteboth.agrisys.client.model.Aktivitaet;
+import com.anteboth.agrisys.client.model.SchlagErntejahr;
 import com.anteboth.agrisys.data.AgrisysDataManager;
-import com.anteboth.agrisys.data.Aktivitaet;
 
 /**
  * Displays the {@link Aktivitaet} list entries.
@@ -25,27 +28,52 @@ import com.anteboth.agrisys.data.Aktivitaet;
  */
 public class AktivitaetListView extends ListActivity {
 
-	/** Reload menu item id. */
-	private static final int RELOAD_DATA = 0;
 	/** The progress dialog.*/
 	private ProgressDialog progressDialog = null; 
 	/** Holds the list data. */
-	private ArrayList<ListItemData> listData = null;
+	private ArrayList<Aktivitaet> listData = null;
 	/** The list data adapter. */
 	private ListDataAdapter listAdapter;
 	/** The data loading runnable. */
 	private Runnable dataLoader;
+	/** ID of the parent {@link SchlagErntejahr} entry. */
+	private long schlagErntejahrID;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.simple_list_view);
-		listData = new ArrayList<ListItemData>();
+		listData = new ArrayList<Aktivitaet>();
 		this.listAdapter = new ListDataAdapter(this, R.layout.main_item_two_line_row, listData);
 		setListAdapter(this.listAdapter);
+		
+		SharedPreferences pref = getSharedPreferences("Agrisys", Context.MODE_WORLD_WRITEABLE);
+		this.schlagErntejahrID = pref.getLong("schlagernteJahrID", -1);
+		String schlagName = pref.getString("schlagName", "");
+		
+		setTitle(getString(R.string.app_name) + "/" + schlagName);
 
 		loadData();
 	}
+	
+	@Override
+	protected void onListItemClick(ListView l, View v, int position, long id) {
+		
+		Aktivitaet f = this.listData.get(position);
+		if (f != null) {
+			SharedPreferences pref = getSharedPreferences("Agrisys", Context.MODE_WORLD_WRITEABLE);
+			Editor editor = pref.edit();
+			editor.putString("aktivitaetName", AgrisysHelper.formatDate(f.getDatum()));
+			editor.putLong("aktivitaetId", f.getId());
+			editor.commit();
+		}
+		
+		Context ctx = v.getContext();
+		Intent intent = new Intent(ctx, AussaatDetailsView.class);
+		ctx.startActivity(intent);
+	}
+
+
 
 	/**
 	 * Loads the data entries.
@@ -65,31 +93,9 @@ public class AktivitaetListView extends ListActivity {
 
 		//show a progress monitor while loading the data 
 		progressDialog = ProgressDialog.show(AktivitaetListView.this,
-				"Bitte warten...", "Daten werden geladen...", true);
+				getString(R.string.please_wait),
+				getString(R.string.loading_data), true);
 	}
-	
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		super.onCreateOptionsMenu(menu);
-		//add reload menu item
-		MenuItem item = menu.add(0, RELOAD_DATA, 0, "Neu laden");
-		item.setIcon(R.drawable.ic_menu_refresh);
-		return true;
-	}
-	
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		if (item != null) {
-			switch (item.getItemId()) {
-				//reload data if menu item pressed
-				case RELOAD_DATA:
-					loadData();
-				return true;
-			}
-		}
-		return super.onOptionsItemSelected(item);
-	}
-	
 	
 	/**
 	 * Refresh the list data after the entries has been loaded.
@@ -116,20 +122,11 @@ public class AktivitaetListView extends ListActivity {
 	 */
 	private void getData(){
 		try{
-			Long schlagErntejahrId = Long.valueOf(248); //TODO
-			
 			//get the flurstueck entries
-			List<Aktivitaet> data = new AgrisysDataManager().loadAktivitaetList(
-					schlagErntejahrId, getApplicationContext());
-			listData = new ArrayList<ListItemData>();
-			if (data != null) {
-				for (Aktivitaet f : data) {
-					ListItemData o = new ListItemData();
-					o.setItem0(f.getDatum().toLocaleString());
-					o.setItem1(f.getFlaeche() + " ha");
-					listData.add(o);
-				}
-			}
+			List<Aktivitaet> data =  
+				AgrisysDataManager.getInstance().getCachedData().get(this.schlagErntejahrID);
+				
+			listData = new ArrayList<Aktivitaet>(data);
 		} catch (Exception e) { 
 			Log.e("BACKGROUND_PROC", e.getMessage());
 		}
@@ -142,10 +139,10 @@ public class AktivitaetListView extends ListActivity {
 	 * Implements the list data adpater for the list view.
 	 * @author michael
 	 */
-	private class ListDataAdapter extends ArrayAdapter<ListItemData> {
-		private ArrayList<ListItemData> items;
+	private class ListDataAdapter extends ArrayAdapter<Aktivitaet> {
+		private ArrayList<Aktivitaet> items;
 
-		public ListDataAdapter(Context context, int textViewResourceId, ArrayList<ListItemData> items) {
+		public ListDataAdapter(Context context, int textViewResourceId, ArrayList<Aktivitaet> items) {
 			super(context, textViewResourceId, items);
 			this.items = items;
 		}
@@ -153,44 +150,25 @@ public class AktivitaetListView extends ListActivity {
 		public View getView(int position, View convertView, ViewGroup parent) {
 			View v = convertView;
 			if (v == null) {
-				LayoutInflater vi = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+				LayoutInflater vi = (LayoutInflater) getSystemService(
+						Context.LAYOUT_INFLATER_SERVICE);
 				v = vi.inflate(R.layout.main_item_two_line_row, null);
 			}
 			
-			ListItemData o = items.get(position);
-			if (o != null) {
+			Aktivitaet a = items.get(position);
+			if (a != null) {
 				TextView tvName = (TextView) v.findViewById(R.id.toptext);
 				TextView tvFlaeche = (TextView) v.findViewById(R.id.bottomtext);
 				
 				if (tvName != null) {
-					tvName.setText(o.getItem0());                            }
+					String d = AgrisysHelper.formatDate(a.getDatum());
+					tvName.setText(d);                            
+				}
 				if(tvFlaeche != null){
-					tvFlaeche.setText(o.getItem1());
+					tvFlaeche.setText(a.getFlaeche() + " ha");
 				}
 			}
 			return v;
-		}
-	}
-	
-	/**
-	 * Implements a two line list data item.
-	 * @author michael
-	 */
-	class ListItemData {
-	    private String item0;
-	    private String item1;
-	    
-	    public String getItem0() {
-			return item0;
-		}
-		public void setItem0(String item0) {
-			this.item0 = item0;
-		}
-		public String getItem1() {
-			return item1;
-		}
-		public void setItem1(String item1) {
-			this.item1 = item1;
 		}
 	}
 }

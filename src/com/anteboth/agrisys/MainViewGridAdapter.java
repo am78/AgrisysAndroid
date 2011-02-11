@@ -74,9 +74,9 @@ public class MainViewGridAdapter extends BaseAdapter {
     	ImageButton b;
     	if (convertView == null) {
     		b = new ImageButton(ctx);
-    		b.setLayoutParams(new GridView.LayoutParams(200, 200));
+    		b.setAdjustViewBounds(true);
     		b.setScaleType(ImageView.ScaleType.FIT_CENTER);
-    		b.setPadding(12, 12, 12, 12);
+    		b.setPadding(20, 20, 20, 20);
     		b.setId(position);
     		b.setOnClickListener(new OnClickListener() {
     		    public void onClick(View v) {
@@ -103,7 +103,7 @@ public class MainViewGridAdapter extends BaseAdapter {
     			intent = new Intent(ctx, FlurstueckListView.class);
     			break;
     		case SAAT_IDX:
-    			intent = new Intent(ctx, AussaatView.class);
+    			intent = new Intent(ctx, AussaatDetailsView.class);
     			break;
     		case BODEN_IDX:
     			break;

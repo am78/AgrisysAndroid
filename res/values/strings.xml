@@ -1,14 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="service_url_schlagdata">http://agri-sys.appspot.com:8888/mobile/SchlagList.jsp</string>
+    <string name="agrisys_base_url">https://agri-sys.appspot.com</string>
+    <string name="agrisys_base_url_dev">http://192.168.178.28:8888</string>
     <string name="app_name">Agrisys</string>
+    <string name="sync_data">Synchronisieren</string>
     <string name="add_item">Add Item</string>
     <string name="main_no_items">Keine Einträge</string>
     <string name="flaeche">Fläche</string>
     <string name="please_wait">Bitte warten...</string>
-    <string name="retrieving_data">Daten werden geladen...</string>
+    <string name="retrieving_data">Daten werden mit dem Server synchronisiert...</string>
+    <string name="loading_data">Daten werden geladen...</string>
     <string name="name">Name</string>
     <string name="empty_string"></string>
     <string name="date">Datum</string>
     <string name="remark">Bemerkung</string>
+    <string name="kultur">Kultur</string>
+    <string name="sorte">Sorte</string>
+    <string name="kgProHa">kg/ha</string>
+    <string name="beize">Beize</string>
+    <string-array name="spinnerItems">
+        <item>Gerste</item>
+        <item>Weizen</item>
+    </string-array>
 </resources>

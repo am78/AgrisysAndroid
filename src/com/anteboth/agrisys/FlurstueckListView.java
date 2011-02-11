@@ -6,19 +6,19 @@ import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.anteboth.agrisys.client.model.SchlagErntejahr;
 import com.anteboth.agrisys.data.AgrisysDataManager;
-import com.anteboth.agrisys.data.Flurstueck;
 
 /**
  * Displays the flurstueck list entries.
@@ -27,12 +27,10 @@ import com.anteboth.agrisys.data.Flurstueck;
  */
 public class FlurstueckListView extends ListActivity{
 
-	/** Reload menu item id. */
-	private static final int RELOAD_DATA = 0;
 	/** The progress dialog.*/
 	private ProgressDialog progressDialog = null; 
 	/** Holds the list data. */
-	private ArrayList<ListItemData> listData = null;
+	private ArrayList<SchlagErntejahr> listData = null;
 	/** The list data adapter. */
 	private ListDataAdapter listAdapter;
 	/** The data loading runnable. */
@@ -42,8 +40,9 @@ public class FlurstueckListView extends ListActivity{
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.simple_list_view);
-		listData = new ArrayList<ListItemData>();
-		this.listAdapter = new ListDataAdapter(this, R.layout.main_item_two_line_row, listData);
+		listData = new ArrayList<SchlagErntejahr>();
+		this.listAdapter = new ListDataAdapter(
+				this, R.layout.main_item_two_line_row, listData);
 		setListAdapter(this.listAdapter);
 
 		loadData();
@@ -67,40 +66,27 @@ public class FlurstueckListView extends ListActivity{
 
 		//show a progress monitor while loading the data 
 		progressDialog = ProgressDialog.show(FlurstueckListView.this,
-				"Bitte warten...", "Daten werden geladen...", true);
+			getString(R.string.please_wait), getString(R.string.loading_data), true);
 	}
 	
 	
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
-		//TODO
+		
+		SchlagErntejahr f = this.listData.get(position);
+		if (f != null) {
+			SharedPreferences pref = getSharedPreferences(
+					"Agrisys", Context.MODE_WORLD_WRITEABLE);
+			Editor editor = pref.edit();
+			editor.putLong("schlagernteJahrID", f.getId());
+			editor.putString("schlagName", f.getName());
+			editor.commit();
+		}
+		
 		Context ctx = v.getContext();
 		Intent intent = new Intent(ctx, AktivitaetListView.class);
 		ctx.startActivity(intent);
 	}
-	
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		super.onCreateOptionsMenu(menu);
-		//add reload menu item
-		MenuItem item = menu.add(0, RELOAD_DATA, 0, "Neu laden");
-		item.setIcon(R.drawable.ic_menu_refresh);
-		return true;
-	}
-	
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		if (item != null) {
-			switch (item.getItemId()) {
-				//reload data if menu item pressed
-				case RELOAD_DATA:
-					loadData();
-				return true;
-			}
-		}
-		return super.onOptionsItemSelected(item);
-	}
-	
 	
 	/**
 	 * Refresh the list data after the entries has been loaded.
@@ -128,16 +114,9 @@ public class FlurstueckListView extends ListActivity{
 	private void getData(){
 		try{
 			//get the flurstueck entries
-			List<Flurstueck> data = new AgrisysDataManager().loadFlurstueckList(getApplicationContext());
-			listData = new ArrayList<ListItemData>();
-			if (data != null) {
-				for (Flurstueck f : data) {
-					ListItemData o = new ListItemData();
-					o.setItem0(f.getName());
-					o.setItem1(f.getFlaeche() + " ha");
-					listData.add(o);
-				}
-			}
+			List<SchlagErntejahr> data = 
+				AgrisysDataManager.getInstance().getCachedData().getFlurstueckList();
+			listData = new ArrayList<SchlagErntejahr>(data);
 		} catch (Exception e) { 
 			Log.e("BACKGROUND_PROC", e.getMessage());
 		}
@@ -150,10 +129,10 @@ public class FlurstueckListView extends ListActivity{
 	 * Implements the list data adpater for the list view.
 	 * @author michael
 	 */
-	private class ListDataAdapter extends ArrayAdapter<ListItemData> {
-		private ArrayList<ListItemData> items;
+	private class ListDataAdapter extends ArrayAdapter<SchlagErntejahr> {
+		private ArrayList<SchlagErntejahr> items;
 
-		public ListDataAdapter(Context context, int textViewResourceId, ArrayList<ListItemData> items) {
+		public ListDataAdapter(Context context, int textViewResourceId, ArrayList<SchlagErntejahr> items) {
 			super(context, textViewResourceId, items);
 			this.items = items;
 		}
@@ -165,40 +144,19 @@ public class FlurstueckListView extends ListActivity{
 				v = vi.inflate(R.layout.main_item_two_line_row, null);
 			}
 			
-			ListItemData o = items.get(position);
+			SchlagErntejahr o = items.get(position);
 			if (o != null) {
 				TextView tvName = (TextView) v.findViewById(R.id.toptext);
 				TextView tvFlaeche = (TextView) v.findViewById(R.id.bottomtext);
 				
 				if (tvName != null) {
-					tvName.setText(o.getItem0());                            }
+					tvName.setText(o.getName());                            }
 				if(tvFlaeche != null){
-					tvFlaeche.setText(o.getItem1());
+					tvFlaeche.setText(o.getFlaeche() + " ha");
 				}
 			}
 			return v;
 		}
 	}
-	
-	/**
-	 * Implements a two line list data item.
-	 * @author michael
-	 */
-	class ListItemData {
-	    private String item0;
-	    private String item1;
-	    
-	    public String getItem0() {
-			return item0;
-		}
-		public void setItem0(String item0) {
-			this.item0 = item0;
-		}
-		public String getItem1() {
-			return item1;
-		}
-		public void setItem1(String item1) {
-			this.item1 = item1;
-		}
-	}
+
 }

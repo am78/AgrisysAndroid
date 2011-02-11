@@ -1,15 +1,24 @@
-package com.anteboth.agrisys.data;
+package com.anteboth.agrisys.client.model;
 
 import java.io.Serializable;
 import java.util.Date;
 
-@SuppressWarnings("serial")
 public class Aktivitaet implements Serializable {
 	
+	private static final long serialVersionUID = -6308217296604194963L;
+
+	private Long id;
 	private Date datum;
 	private double flaeche;
 	private String bemerkung;
 	private String typ;
+	
+	public Long getId() {
+		return id;
+	}
+	public void setId(Long id) {
+		this.id = id;
+	}
 	
 	public Date getDatum() {
 		return datum;
