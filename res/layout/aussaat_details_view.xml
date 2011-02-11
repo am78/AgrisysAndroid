@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView android:id="@+id/scrollView1"
+	android:layout_width="fill_parent" android:layout_height="fill_parent"
+	xmlns:android="http://schemas.android.com/apk/res/android">
+	<TableLayout android:id="@+id/tableLayout1"
+		android:layout_width="fill_parent" android:layout_height="fill_parent"
+		android:addStatesFromChildren="false" android:scrollbars="vertical">
+		<TextView android:layout_width="wrap_content"
+			android:layout_height="wrap_content" android:id="@+id/textView1"
+			android:text="@string/date"></TextView>
+
+		<DatePicker android:layout_width="wrap_content" android:id="@+id/datePicker"
+			android:layout_height="wrap_content"></DatePicker>
+		<TextView android:layout_width="wrap_content"
+			android:layout_height="wrap_content" android:text="@string/flaeche"
+			android:id="@+id/textView2"></TextView>
+		<EditText android:layout_width="wrap_content"
+			android:layout_height="wrap_content" android:id="@+id/txtFlaeche"
+			android:hint="@string/flaeche" android:lines="1" android:maxLines="1" android:inputType="numberDecimal" android:digits="0123456789."></EditText>
+		<TextView android:layout_width="wrap_content"
+			android:layout_height="wrap_content" android:text="@string/kultur"
+			android:id="@+id/textView3"></TextView>
+		<Spinner android:layout_width="wrap_content"
+			android:layout_height="wrap_content" android:id="@+id/spinnerKultur"></Spinner>
+		<TextView android:layout_width="wrap_content"
+			android:layout_height="wrap_content" android:text="@string/sorte"
+			android:id="@+id/textView4"></TextView>
+		<Spinner android:layout_width="wrap_content"
+			android:layout_height="wrap_content" android:id="@+id/spinnerSorte"></Spinner>
+		<TextView android:layout_width="wrap_content"
+			android:layout_height="wrap_content" android:text="@string/kgProHa"
+			android:id="@+id/textView5"></TextView>
+		<EditText android:layout_width="wrap_content"
+	android:layout_height="wrap_content" android:id="@+id/txtKgProHa"
+	android:hint="@string/kgProHa" android:inputType="numberDecimal" android:digits="0123456789." android:lines="1" android:maxLines="1"></EditText>
+		<TextView android:layout_width="wrap_content"
+			android:layout_height="wrap_content" android:text="@string/beize"
+			android:id="@+id/textView6"></TextView>
+		<EditText android:layout_width="wrap_content"
+			android:layout_height="wrap_content" android:id="@+id/txtBeize"
+			android:hint="@string/beize"></EditText>
+		<TextView android:layout_width="wrap_content"
+			android:layout_height="wrap_content" android:text="@string/remark"
+			android:id="@+id/textView7"></TextView>
+		<EditText android:layout_width="wrap_content"
+			android:layout_height="wrap_content" android:id="@+id/txtBemerkung" android:hint="@string/remark"></EditText>
+	</TableLayout>
+
+</ScrollView>
