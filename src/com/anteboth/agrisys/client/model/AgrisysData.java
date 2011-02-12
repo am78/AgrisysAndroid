@@ -1,12 +1,17 @@
 package com.anteboth.agrisys.client.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.anteboth.agrisys.client.model.stammdaten.Stammdaten;
 
+/**
+ * {@link AgrisysData} stores all agrisys domain specific data which is used by this application.
+ * @author michael
+ */
 public class AgrisysData implements Serializable {
 
 	private static final long serialVersionUID = -7362941293910882188L;
@@ -14,9 +19,12 @@ public class AgrisysData implements Serializable {
 	private Stammdaten stammdaten;
 	private List<SchlagErntejahr> flurstueckList;
 	private Map<Long, List<Aktivitaet>> aktivitaetMap;
+	private boolean empty = true;
 	
 	public AgrisysData() {
 		this.aktivitaetMap = new HashMap<Long, List<Aktivitaet>>();
+		this.flurstueckList = new ArrayList<SchlagErntejahr>();
+		this.stammdaten = new Stammdaten();
 	}
 	
 	public Stammdaten getStammdaten() {
@@ -66,5 +74,20 @@ public class AgrisysData implements Serializable {
 		}
 		return null;
 	}
+
+	/**
+	 * Returns the empty flag.
+	 * @return the empty flag
+	 */
+	public boolean isEmpty() {
+		return this.empty;
+	}
 	
+	/**
+	 * Sets the empty flag.
+	 * @param empty the flags value
+	 */
+	public void setEmpty(boolean empty) {
+		this.empty = empty;
+	}
 }

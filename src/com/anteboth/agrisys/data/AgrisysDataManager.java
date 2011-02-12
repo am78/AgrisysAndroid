@@ -81,8 +81,13 @@ public class AgrisysDataManager {
 	 * @throws SystemException if something went wrong
 	 */
 	public void synchronizeData(Context context) throws SystemException {
-		AgrisysData ad = loadAgrisysData(context);
-		this.cachedData = ad;
+		AgrisysData ad = new AgrisysData();
+		try {
+			ad = loadAgrisysData(context);
+		} finally {
+			//this set the cached data, if something went wrong it's set back to default value 
+			this.cachedData = ad;
+		}
 	}
 	
 	/**
@@ -110,7 +115,44 @@ public class AgrisysDataManager {
 			ad.putAktivitaet(schlagErntejahrId, al);
 		}
 		
+		ad.setEmpty(false);
 		return ad;
+	}
+	
+	/**
+	 * Stores the {@link #cachedData} {@link AgrisysData} entry to the
+	 * file system.
+	 * 
+	 * @param context			the context
+	 * @throws SystemException	if something went wrong
+	 */
+	public void storeAgrisysDataToFileSystem(Context context) 
+	throws SystemException {
+		try {
+			storeData(getCachedData(), context);
+		} catch (IOException e) {
+			Log.e(TAG, e.getMessage());
+			throw new SystemException(e);
+		}
+	}
+	
+	/**
+	 * Loads the {@link AgrisysData} from the file system and updates the {@link #cachedData}
+	 * item which is accessible thru {@link #getCachedData()}.
+	 * 
+	 * @param context			the context
+	 * @throws SystemException  if something went wrong
+	 */
+	public void loadAgrisysDataFromFileSystem(Context context) throws SystemException {
+		AgrisysData ad = new AgrisysData();
+		try {
+			ad = loadFromDataFile(context);
+		} catch (Throwable e) {
+			Log.e(TAG, e.getMessage());
+			throw new SystemException(e);
+		} finally {
+			this.cachedData = ad;
+		}
 	}
 	
 	/**
@@ -121,7 +163,7 @@ public class AgrisysDataManager {
 	 * @param context		the context
 	 * @throws IOException	if something went wrong
 	 */
-	public void storeData(AgrisysData data, Context context) throws IOException {
+	private void storeData(AgrisysData data, Context context) throws IOException {
 		storeToDataFile(data, context);
 	}
 	
@@ -132,7 +174,7 @@ public class AgrisysDataManager {
 	 * @throws IOException 				if something went wrong
 	 * @throws ClassNotFoundException 	if the stored data isn't a {@link AgrisysData} entry
 	 */
-	public AgrisysData loadFromDataFile(Context context) 
+	private AgrisysData loadFromDataFile(Context context) 
 	throws IOException, ClassNotFoundException {
 		FileInputStream fis = context.openFileInput(DATA_FILE_NAME);
 		ObjectInputStream in = new ObjectInputStream(fis);

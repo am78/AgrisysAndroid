@@ -1,5 +1,7 @@
 package com.anteboth.agrisys;
 
+import java.io.IOException;
+
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.os.Bundle;
@@ -7,8 +9,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.GridView;
-import android.widget.Toast;
 
+import com.anteboth.agrisys.client.model.AgrisysData;
 import com.anteboth.agrisys.data.AgrisysDataManager;
 
 /**
@@ -30,6 +32,33 @@ public class MainView extends Activity {
 	    gridview.setAdapter(new MainViewGridAdapter(this));
 
 	    setTitle(R.string.app_name);
+	    
+	    //when starting the app first load the agrisysData
+	    //try to load the stored data which is stored in the file system
+	    AgrisysDataManager adm = AgrisysDataManager.getInstance();
+	    try {
+			adm.loadAgrisysDataFromFileSystem(this);
+		} catch (SystemException e) {
+			Log.e("MainView", e.getMessage());
+		}
+	    
+		if (adm.getCachedData() == null || adm.getCachedData().isEmpty()) {
+			//if it's not present load the data from the server using the synchronize method
+			performSynchronizeData();
+		}
+	}
+	
+	@Override
+	protected void onDestroy() {
+		//the main view will be destroyed
+		//so it's time to save the cached data to the file system
+		AgrisysDataManager adm = AgrisysDataManager.getInstance();
+		try {
+			adm.storeAgrisysDataToFileSystem(this);
+		} catch (SystemException e) {
+			Log.e("MainView", e.getMessage());
+		}
+		super.onDestroy();
 	}
 	
 	@Override
