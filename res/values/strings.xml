@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="agrisys_base_url">https://agri-sys.appspot.com</string>
-    <string name="agrisys_base_url_dev">http://192.168.178.28:8888</string>
+    <string name="agrisys_base_url_dev">http://192.168.178.32:8888</string>
     <string name="app_name">Agrisys</string>
     <string name="sync_data">Synchronisieren</string>
     <string name="add_item">Add Item</string>

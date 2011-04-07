@@ -23,17 +23,11 @@ import android.content.Context;
 import android.net.http.AndroidHttpClient;
 import android.util.Log;
 
-import com.anteboth.agrisys.AgrisysHelper;
 import com.anteboth.agrisys.R;
 import com.anteboth.agrisys.SystemException;
 import com.anteboth.agrisys.client.model.AgrisysData;
 import com.anteboth.agrisys.client.model.Aktivitaet;
 import com.anteboth.agrisys.client.model.SchlagErntejahr;
-import com.anteboth.agrisys.client.model.stammdaten.BodenbearbeitungTyp;
-import com.anteboth.agrisys.client.model.stammdaten.Duengerart;
-import com.anteboth.agrisys.client.model.stammdaten.Kultur;
-import com.anteboth.agrisys.client.model.stammdaten.PSMittel;
-import com.anteboth.agrisys.client.model.stammdaten.Sorte;
 import com.anteboth.agrisys.client.model.stammdaten.Stammdaten;
 
 public class AgrisysDataManager {
@@ -81,6 +75,14 @@ public class AgrisysDataManager {
 	 * @throws SystemException if something went wrong
 	 */
 	public void synchronizeData(Context context) throws SystemException {
+		//1st put all changes made by the mobile clien to the server
+		if (this.cachedData != null) {
+			List<Aktivitaet> changed = this.cachedData.getChanged();
+			//TODO put to server
+		}
+		
+		
+		//than get the data from the server
 		AgrisysData ad = new AgrisysData();
 		try {
 			ad = loadAgrisysData(context);
@@ -220,118 +222,22 @@ public class AgrisysDataManager {
 		String baseUri = getBaseUrl(context);
 		String urlSuffix = "/service/stammdaten?media=json";
 		
-		Stammdaten sd = new Stammdaten();
+		Stammdaten sd = null;
 		try {
 			JSONObject json = getJSONObject(baseUri, urlSuffix, context);
 			
-			JSONArray array = json.getJSONArray("kulturList");
-			int l = array.length();
-			for (int i=0; i<l; i++) {
-				JSONObject o = array.getJSONObject(i);
-				long id = getLong(o, "id");
-				String name = getString(o, "name");
-				String beschreibung = getString(o, "beschreibung");
-				Kultur k = new Kultur();
-				k.setId(id);
-				k.setName(name);
-				k.setBeschreibung(beschreibung);
-				sd.getKulturList().add(k);
-			}
-			
-			array = json.getJSONArray("sorteList");
-			l = array.length();
-			for (int i=0; i<l; i++) {
-				JSONObject o = array.getJSONObject(i);
-				long id = getLong(o, "id");
-				String name = getString(o, "name");
-				String beschreibung = getString(o, "beschreibung");
-				long kulturID = o.getJSONObject("kultur").getLong("id");
-				Kultur k = sd.getKultur(kulturID);
-				Sorte s = new Sorte();
-				s.setId(id);
-				s.setName(name);
-				s.setBeschreibung(beschreibung);
-				s.setKultur(k);
-				sd.getSorteList().add(s);
-			}
-			
-			array = json.getJSONArray("duengerartList");
-			l = array.length();
-			for (int i=0; i<l; i++) {
-				JSONObject o = array.getJSONObject(i);
-				long id = getLong(o, "id");
-				String name = getString(o, "name");
-				String beschreibung = getString(o, "beschreibung");
-				Duengerart d = new Duengerart();
-				d.setId(id);
-				d.setName(name);
-				d.setBeschreibung(beschreibung);
-				sd.getDuengerartList().add(d);
-			}
-			
-			array = json.getJSONArray("psMittelList");
-			l = array.length();
-			for (int i=0; i<l; i++) {
-				JSONObject o = array.getJSONObject(i);
-				long id = getLong(o, "id");
-				String name = getString(o, "name");
-				String beschreibung = getString(o, "beschreibung");
-				PSMittel p = new PSMittel();
-				p.setId(id);
-				p.setName(name);
-				p.setBeschreibung(beschreibung);
-				sd.getPsMittelList().add(p);
-			}
-			
-			array = json.getJSONArray("bodenbearbeitungTypList");
-			l = array.length();
-			for (int i=0; i<l; i++) {
-				JSONObject o = array.getJSONObject(i);
-				long id = getLong(o, "id");
-				String name = getString(o, "name");
-				String beschreibung = getString(o, "beschreibung");
-				BodenbearbeitungTyp b = new BodenbearbeitungTyp();
-				b.setId(id);
-				b.setName(name);
-				b.setBeschreibung(beschreibung);
-				sd.getBodenbearbeitungTypList().add(b);
-			}
+			sd = StammdatenFactory.createStammdaten(json);
 		} catch (Throwable e) {
+			e.printStackTrace();
 			throw new SystemException(e);
 		}
 		return sd;
 	}
+
+
 	
-	/**
-	 * Get the long value for the specified fieldName from the json object.
-	 * @param o 			the json object
-	 * @param fieldName 	the field name
-	 * @return				the long value, is -1 if the field is not defined
-	 * @throws JSONException	if something went wrong
-	 */
-	private long getLong(JSONObject o, String fieldName) throws JSONException {
-		long l = -1;
-		if (o != null && o.has(fieldName)) {
-			l = o.getLong(fieldName);
-		}
-		return l;
-	}
 	
-	/**
-	 * Get the string value for the specified field name from the json object.
-	 * 
-	 * @param o				the json object
-	 * @param fieldName		the field name
-	 * @return				the defined string, is null if field not present
-	 * @throws JSONException	if something went wrong
-	 */
-	private String getString(JSONObject o, String fieldName) throws JSONException {
-		String s = "";
-		if (o != null && o.has(fieldName)) {
-			s = o.getString(fieldName);
-		}
-		return s;
-	}
+	
 
 	/**
 	 * Loads the {@link Aktivitaet} values for the specified schlagErntejahrID.
@@ -343,30 +249,18 @@ public class AgrisysDataManager {
 	 */
 	private List<Aktivitaet> loadAktivitaetList(Long schlagErntejahrId, Context context) throws SystemException {
 		String baseUri = getBaseUrl(context);
-		String urlSuffix = "/service/aktivitaetList/" + schlagErntejahrId + "?media=json";
 		Log.d(TAG, "SchlagErntejahr ID: " + schlagErntejahrId);
 		
+		//get all entries from the server
 		List<Aktivitaet> data = new ArrayList<Aktivitaet>();
 		try {
+			String urlSuffix = "/service/aktivitaetList/" + schlagErntejahrId + "?media=json";
 			JSONArray array = getJSONArray(baseUri, urlSuffix, context);
 			if (array != null) {
 				for (int i=0; i<array.length(); i++) {
 					JSONObject json = array.getJSONObject(i);
 					
-					long id = getLong(json, "id");
-					double flaeche = json.getDouble("flaeche");
-					String d = getString(json, "datum");
-					String bem = getString(json, "bemerkung");
-					
-//					JSONObject t = json.getJSONObject("typ");
-//					String typ = getString(t, "kindClassName");
-					
-					Aktivitaet a = new Aktivitaet();
-					a.setFlaeche(flaeche);
-					a.setBemerkung(bem);
-					a.setId(Long.valueOf(id));
-					a.setDatum(AgrisysHelper.toDate(d));
-//					a.setTyp(typ);
+					Aktivitaet a = AktivitaetFactory.createAktivitaet(schlagErntejahrId, json);
 					
 					data.add(a);
 				}
@@ -378,6 +272,9 @@ public class AgrisysDataManager {
 		
 		return data;
 	}
+
+
+	
 	
 	/**
 	 * Load the {@link SchlagErntejahr} entries from the agrisys server.
@@ -396,22 +293,7 @@ public class AgrisysDataManager {
 			if (array != null) {
 				for (int i=0; i<array.length(); i++) {
 					JSONObject json = array.getJSONObject(i);
-					JSONObject flurstueck = json.getJSONObject("flurstueck");
-					String name = flurstueck.getString("name");
-					
-					JSONObject schlagErntejahr = json.getJSONObject("schlagErntejahr");
-					double flaeche = schlagErntejahr.getDouble("flaeche");
-					long id = schlagErntejahr.getLong("id");
-					
-					long anbauSorteId = schlagErntejahr.getJSONObject("anbauSorte").getLong("id");
-					long vorfruchtKulturId = schlagErntejahr.getJSONObject("vorfrucht").getLong("id");
-					
-					SchlagErntejahr se = new SchlagErntejahr();
-					se.setName(name);
-					se.setFlaeche(flaeche);
-					se.setId(id);
-					se.setSorte(sd.getSorte(anbauSorteId));
-					se.setVorfrucht(sd.getKultur(vorfruchtKulturId));
+					SchlagErntejahr se = SchlagErntejahrFactory.createSchlagErntejahr(sd, json);
 					data.add(se);
 				}
 			}
@@ -420,6 +302,9 @@ public class AgrisysDataManager {
 		}
 		return data;
 	}
+
+
+	
 
 	/**
 	 * Loads a {@link JSONArray} from the specified URL.
@@ -483,12 +368,15 @@ public class AgrisysDataManager {
 	 * @throws JSONException			on JSON problem
 	 */
 	private JSONObject getJSONObject(String baseUri, String urlSuffix, Context context) 
-	throws AuthenticationException, AccountsException, IOException, JSONException {
+	throws AuthenticationException, AccountsException, IOException, JSONException, Throwable {
 		JSONObject data = null; 
 		
 		AndroidHttpClient client = AndroidHttpClient.newInstance( "IntegrationTestAgent");//, context);
 		String result = null;
 		try {
+			
+			System.out.println("load data from: " + baseUri + urlSuffix);
+			
 			//String baseUri = "https://android-gae-http-test.appspot.com";
 			//"/authenticated/get"
 			HttpGet get = new HttpGet(baseUri + urlSuffix);
@@ -504,10 +392,14 @@ public class AgrisysDataManager {
 			}
 			
 			result = EntityUtils.toString(response.getEntity());
-			
+			System.out.println("data loaded");
+		} catch (Throwable t) {
+			t.printStackTrace();
+			throw t;
 		} finally {
 			client.close();
 		}
+		
 
 		if (result != null) {			
 			data = new JSONObject(result);

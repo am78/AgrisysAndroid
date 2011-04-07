@@ -74,6 +74,24 @@ public class AgrisysData implements Serializable {
 		}
 		return null;
 	}
+	
+	/**
+	 * Returns all changed (not in synchron state) {@link Aktivitaet} entries. 
+	 * @return
+	 */
+	public List<Aktivitaet> getChanged() {
+		List<Aktivitaet> changed = new ArrayList<Aktivitaet>();
+		for (List<Aktivitaet> list : this.aktivitaetMap.values()) {
+			if (list != null && !list.isEmpty()) {
+				for (Aktivitaet a : list) {
+					if (a != null && !a.isSynchron()) {
+						changed.add(a);
+					}
+				}
+			}
+		}
+		return changed;
+	}
 
 	/**
 	 * Returns the empty flag.
